@@ -1,0 +1,81 @@
+{% extends 'base_authentication.html' %}
+
+{% block user_athentication %}
+<!-- Contenido del primer formulario -->
+<section class="formulario" id="formulario1">
+    <div class="text-center">
+        <h4 class="mt-1 mb-5 pb-1">Sign In</h4>
+    </div>
+
+    <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <p>Please login to your account</p>
+
+        <div class="form-outline mb-4 form-group">
+            <input type="email" id="form3Example3cg" class="form-control form-control-lg" placeholder=" "
+                name="email" />
+            <label class="form-label" for="form3Example3cg">Your
+                Email</label>
+        </div>
+
+        <div class="form-outline mb-4 form-group">
+            <input type="password" id="form3Example4cg" class="form-control form-control-lg" placeholder=" "
+                name="password" />
+            <label class="form-label" for="form3Example4cg">Password</label>
+        </div>
+
+        <input type="hidden" name="name_page" value="{{ name_page }}" />
+
+        <div class="form-check d-flex justify-content-center form-group custom-control custom-checkbox">
+            <input class="form-check-input me-2 custom-control-input" type="checkbox" id="form1Example3"
+                name="remember_me" />
+            <label class="form-check-label custom-control-label" for="form1Example3">
+                Remember me </label>
+        </div>
+
+        <div class="text-center pt-1 mb-5 pb-1">
+            <div class="d-flex justify-content-center">
+                <button type="submit" class="btn btn-info btn-block btn-lg gradient-custom-4">Sign Up</button>
+            </div>
+            <a class="text-muted" href="#!">Forgot password?</a>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-center pb-4">
+            <p class="mb-0 me-2 mr-2">Don't have an account?</p>
+            <button type="button" class="btn btn-outline-primary" id="createNewBtn">Create
+                new</button>
+        </div>
+
+    </form>
+</section>
+
+<section id="formulario2" class="formulario">
+    <div class="text-center">
+        <h4 class="mt-1 mb-5 pb-1">Sign Up</h4>
+    </div>
+
+    <!-- <div class="opciones-container">
+        <p class="fw-light text-muted">Account type </p>
+        <div class="row mt-1">
+            <div class="col">
+                <label class="bolita-label">
+                    <input type="radio" name="opcion" class="bolita-input" value="customer">
+                    <div class="bolita"></div>
+                    <div class="texto">Customer</div>
+                </label>
+            </div>
+            <div class="col">
+                <label class="bolita-label">
+                    <input type="radio" name="opcion" class="bolita-input" value="companion">
+                    <div class="bolita"></div>
+                    <div class="texto">Companion</div>
+                </label>
+            </div>
+        </div>
+    </div> -->
+
+    <!-- Contenido del segundo formulario (Crear usuario) -->
+    <div id="registration-form-container" class=" "></div>
+
+</section>
+{% endblock %}

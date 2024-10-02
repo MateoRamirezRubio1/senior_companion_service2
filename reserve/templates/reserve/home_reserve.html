@@ -1,0 +1,450 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="content jumbotron text-center mt-5"
+    style="background-image: url('../../../static/images/imag8.jpg'); background-size: cover; background-position: center center; position: relative;">
+    <!-- Aplicar un filtro de desenfoque solo a la imagen de fondo -->
+    <div class="background-blur"
+        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-image: url('imag8.jpg'); filter: blur(4px); background-size: cover; background-position: center center;">
+    </div>
+    <div style="position: relative; color: white; padding: 20px;">
+        <h1 class="display-4">Personalized Accompaniment for the Elderly</h1>
+        <p class="lead">We make your daily life easier by providing you with the support you need.</p>
+    </div>
+</div>
+
+<!-- Services Section -->
+<!-- ... (código de la sección de servicios) ... -->
+
+<!-- Search and Filter Section -->
+<div class="container" id="reserva">
+    <div class="row">
+        <div class="col-lg-8 offset-lg-2 text-center">
+            <h2>Search Companion</h2>
+            <p>Find the perfect companion for your needs and preferences.</p>
+
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search...">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button">Search</button>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-md-12 text-center">
+                    <div class="btn-group" role="group" aria-label="Filtros">
+                        <button type="button" class="btn btn-outline-secondary">Filtro 1</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 2</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 3</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 4</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 5</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 6</button>
+                        <button type="button" class="btn btn-outline-secondary">Filtro 7</button>
+                    </div>
+                    <button class="btn btn-primary ml-2 mt-2" id="btnMostrarFiltros">All Filters</button>
+                    <!-- Agrega ml-2 para un margen a la izquierda -->
+                </div>
+            </div>
+
+
+            <!-- Ventana Modal de Filtros -->
+            <div class="modal fade" id="filtroModal" tabindex="-1" role="dialog" aria-labelledby="filtroModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="filtroModalLabel">Filtros Avanzados</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Contenido del formulario de filtros -->
+                            <form method="post" action="">
+                                <label for="categoria">Categoría:</label>
+                                <select class="form-control" id="categoria" name="categoria">
+                                    <option value="todos">Todos</option>
+                                    <option value="electronica">Electrónica</option>
+                                    <option value="ropa">Ropa</option>
+                                    <!-- Agrega más opciones de categoría si es necesario -->
+                                </select>
+
+                                <div class="form-group">
+                                    <label for="precio">Precio por hora:</label>
+                                    <input type="text" id="price-range" name="price-range" />
+                                </div>
+
+                                <div class="divider"></div> <!-- Línea separadora -->
+
+                                <div class="form-group">
+                                    <label>Selecciona el número de estrellas:</label>
+                                    <div id="stars" class="stars">
+                                        <i class="fas fa-star" data-value="1"></i>
+                                        <i class="fas fa-star" data-value="2"></i>
+                                        <i class="fas fa-star" data-value="3"></i>
+                                        <i class="fas fa-star" data-value="4"></i>
+                                        <i class="fas fa-star" data-value="5"></i>
+                                        <i class="fas fa-star" data-value="6"></i>
+                                        <i class="fas fa-star" data-value="7"></i>
+                                        <i class="fas fa-star" data-value="8"></i>
+                                        <i class="fas fa-star" data-value="9"></i>
+                                        <i class="fas fa-star" data-value="10"></i>
+                                    </div>
+                                    <input type="hidden" id="rating" name="rating" value="0">
+                                    <!-- Campo de entrada oculto para almacenar el valor -->
+                                </div>
+
+                                <div class="divider"></div> <!-- Línea separadora -->
+
+                                <div class="date-time-picker">
+                                    <div class="container">
+                                        <p>Seleccione un Rango de Fechas y Horas:</p>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="start-date">Fecha de Inicio:</label>
+                                                    <input type="date" class="form-control" id="start-date">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="end-date">Fecha de Fin:</label>
+                                                    <input type="date" class="form-control" id="end-date">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="form-group">
+                                                    <label for="start-time">Hora de Inicio:</label>
+                                                    <input type="time" class="form-control" id="start-time">
+                                                </div>
+                                                <div class="form-group">
+                                                    <label for="end-time">Hora de Fin:</label>
+                                                    <input type="time" class="form-control" id="end-time">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="divider"></div> <!-- Línea separadora -->
+
+
+
+
+                                <button type="submit" class="btn btn-primary mt-3">Aplicar Filtros</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+</div>
+
+<!-- Accompanists Profiles Section -->
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-1">
+                <img src="https://st2.depositphotos.com/1158045/50451/i/450/depositphotos_504518748-stock-photo-portrait-happy-cheerful-smiling-young.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Diana Cristobal</h4>
+                        <span class="text-muted d-block mb-2">Los Angeles, Spanish</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>20</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.5</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Agregar más perfiles de acompañantes aquí... -->
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-2">
+                <img src="https://st4.depositphotos.com/2760050/39999/i/600/depositphotos_399994284-stock-photo-facial-care-and-ageing-traits.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Benjamin Tims</h4>
+                        <span class="text-muted d-block mb-2">Germany</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>15</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.0</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>2</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-3">
+                <img src="https://t2.uc.ltmcdn.com/es/posts/7/0/0/como_saber_si_un_hombre_es_maduro_34007_600.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Jacinto Oliveira</h4>
+                        <span class="text-muted d-block mb-2">Los Angeles</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>20</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.5</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-4">
+                <img src="https://static9.depositphotos.com/1049184/1146/i/450/depositphotos_11465540-stock-photo-beautiful-smiley-woman.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Joana Checa</h4>
+                        <span class="text-muted d-block mb-2">Colombia</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>24</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.5</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-5">
+                <img src="https://st3.depositphotos.com/3433891/33506/i/450/depositphotos_335066306-stock-photo-young-mixed-race-arabic-man.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Ezequiel Villanueva</h4>
+                        <span class="text-muted d-block mb-2">Italy</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>30</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.6</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>4</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-6">
+                <img src="https://st3.depositphotos.com/13318524/15824/i/600/depositphotos_158241322-stock-photo-smiling-woman-taking-selfie.jpg"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">Emiliana Heredia</h4>
+                        <span class="text-muted d-block mb-2">Los Angeles</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>20</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.5</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contact Section -->
+<!-- ... (código de la sección de contacto) ... -->
+{% endblock %}

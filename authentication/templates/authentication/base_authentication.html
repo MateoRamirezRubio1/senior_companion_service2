@@ -1,0 +1,29 @@
+<div class="container">
+    <!-- Botón para abrir la ventana modal -->
+
+
+    <!-- Ventana modal -->
+    <div class="modal fade" id="myModal">
+        <div class="modal-dialog modal-lg"> <!-- Elimina la clase modal-dialog-centered -->
+            <div class="modal-content">
+                <div class="modal-body">
+                    <!-- Contenido de la ventana modal -->
+                    <div class="formulario-btn-group centered-buttons"> <!-- Aplica la clase centered-buttons -->
+                        <button id="mostrarFormulario1" class="btn formulario-btn">Log In</button>
+                        <button id="mostrarFormulario2" class="btn formulario-btn">Register</button>
+                    </div>
+
+                    <!-- Botón de cerrar en la esquina superior derecha -->
+                    <div class="close-btn-container">
+                        <button type="button" class="close close-btn" data-dismiss="modal">&times;</button>
+                    </div>
+
+                    <div class="formulario-separador"></div>
+
+                    {% block user_athentication %}{% endblock %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

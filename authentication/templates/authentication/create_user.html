@@ -1,0 +1,91 @@
+<form id="myForm" method="post" action="{% url 'createCustomer' %}">
+    {% csrf_token %}
+    <p>Please enter your data to create a new account</p>
+
+    <div class="form-outline mb-4 form-group">
+        <input type="text" id="{{ form.names.id_for_label }}" class="form-control form-control-lg" placeholder=" "
+            name="{{ form.names.name }}" />
+        <label class="form-label" for="{{ form.names.id_for_label }}">Your Names</label>
+    </div>
+
+    <div class="form-outline mb-4 form-group">
+        <input type="text" id="{{ form.lastNames.id_for_label }}" class="form-control form-control-lg" placeholder=" "
+            name="{{ form.lastNames.name }}" />
+        <label class="form-label" for="{{ form.lastNames.id_for_label }}">Your Last Name</label>
+    </div>
+
+    <div class="form-outline mb-4 form-group">
+        <input type="email" id="{{ form.email.id_for_label }}" class="form-control form-control-lg" placeholder=" "
+            name="{{ form.email.name }}" />
+        <label class="form-label" for="{{ form.email.id_for_label }}">Your Email</label>
+    </div>
+
+    <div class="opciones-container">
+        <p class="fw-light text-muted">Account type </p>
+        <div class="row mt-1">
+            <div class="col">
+                <label class="bolita-label">
+                    <input type="radio" class="bolita-input" name="opcion" value="customer">
+                    <div class="bolita"></div>
+                    <div class="texto">Customer</div>
+                </label>
+            </div>
+            <div class="col">
+                <label class="bolita-label">
+                    <input type="radio" class="bolita-input" name="opcion" value="companion">
+                    <div class="bolita"></div>
+                    <div class="texto">Companion</div>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-outline mb-4 form-group">
+        <input type="password" id="{{ form.password1.id_for_label }}" class="form-control form-control-lg"
+            placeholder=" " name="{{ form.password1.name }}" />
+        <label class="form-label" for="{{ form.password1.id_for_label }}">Password</label>
+    </div>
+
+    <div class="form-outline mb-4 form-group">
+        <input type="password" id="{{ form.password2.id_for_label }}" class="form-control form-control-lg"
+            placeholder=" " name="{{ form.password2.name }}" />
+        <label class="form-label" for="{{ form.password2.id_for_label }}">Repeat your password</label>
+    </div>
+
+    <div class="form-check d-flex justify-content-center form-group custom-control custom-checkbox">
+        <input class="form-check-input me-2 custom-control-input" type="checkbox" value=""
+            id="{{ form.agree.id_for_label }}" name="{{ form.agree.name }}" />
+        <label class="form-check-label custom-control-label" for="{{ form.agree.id_for_label }}">
+            I agree all statements in <a href="#!">Terms of service</a>
+        </label>
+    </div>
+
+    <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-info btn-block btn-lg gradient-custom-4">Sign
+            In</button>
+    </div>
+
+    <!-- <div class="d-flex align-items-center justify-content-center pb-4 text-center text-muted mt-5 mb-0">
+        <p class="mb-0 me-2  mr-2">Have already an
+            account?</p>
+        <button type="button" class="btn btn-outline-primary" id="loginHereBtn">Login
+            here</button>
+    </div> -->
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $('input[name="opcion"]').on('change', function () {
+            var actionUrl = ($(this).val() === 'customer') ? '{% url "createCustomer" %}' : '{% url "createCompanion" %}';
+            $('#myForm').attr('action', actionUrl);
+        });
+
+        // Agregar el efecto de selección al hacer clic en la etiqueta de bolita
+        $('.bolita-label').on('click', function () {
+            // Desmarca todas las demás opciones al seleccionar una
+            $('.bolita-label').removeClass('selected');
+            $(this).addClass('selected');
+        });
+    });
+</script>

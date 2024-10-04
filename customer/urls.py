@@ -3,7 +3,11 @@ from . import views
 from authentication.views import edit_user_profile
 
 urlpatterns = [
-    path("create/", views.CustomerRegistrationView.as_view(), name="createCustomer"),
+    path(
+        "create/",
+        views.CustomerRegistrationFactory().as_view(),
+        name="createCustomer",
+    ),
     path("edit/", views.edit_general_all_customer, name="editGeneralAllCustomer"),
     path(
         "edit/medicalInformation",

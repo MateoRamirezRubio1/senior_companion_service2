@@ -5,65 +5,73 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from authentication.views import UserRegistrationView, edit_user_profile
 from authentication.models import User
-from .models import Customer, MedicalInformation, Preference
 from .forms import MedicalInformationForm, PreferenceForm, CustomerUpdateForm
+from .decorators import actual_customer_required, inject_service
+from .services_factory import ServiceFactory
+
+services_factory = ServiceFactory()
+customer_service = services_factory.get_service("CUSTOMER")
+preference_service = services_factory.get_service("PREFERENCE")
+medical_info_service = services_factory.get_service("MEDICAL_INFO")
 
 
-class CustomerRegistrationView(UserRegistrationView):
-    """
-    View for customer registration, extending UserRegistrationView.
-
-    Attributes:
-        None.
-    """
-
-    def post(self, request, *args, **kwargs):
+def CustomerRegistrationFactory():
+    class CustomerRegistrationView(UserRegistrationView):
         """
-        Handle POST request to process customer registration.
+        View for customer registration, extending UserRegistrationView.
 
-        Args:
-            request: HTTP request object.
-            *args: Additional positional arguments.
-            **kwargs: Additional keyword arguments.
-
-        Returns:
-            HTTP response based on the success or failure of the registration.
         """
-        response = redirect("home")
 
-        try:
-            with transaction.atomic():
-                response = super().post(request, *args, **kwargs)
-                user = get_object_or_404(User, email=request.POST["email"])
-                customer = Customer.objects.create(idUser=user, accountState="activo")
+        @inject_service(customer_service)
+        def post(self, request, *args, service=None, **kwargs):
+            """
+            Handle POST request to process customer registration.
+
+            Args:
+                request: HTTP request object.
+                *args: Additional positional arguments.
+                **kwargs: Additional keyword arguments.
+
+            Returns:
+                HTTP response based on the success or failure of the registration.
+            """
+            response = redirect("home")
+
+            try:
+                with transaction.atomic():
+                    # Ensure atomicity of the database operations
+                    response = super().post(request, *args, **kwargs)
+                    user = get_object_or_404(User, email=request.POST["email"])
+                    service.register_customer(user)
+                    messages.success(
+                        request, "Customer successfully created, you can now login"
+                    )
+                    return redirect("home")
+
+            except IntegrityError:
+                # Handle case where a customer already exists with the provided email
+                messages.error(
+                    request, "Error: A Customer with this email already exists."
+                )
                 return redirect("home")
 
-        except IntegrityError:
-            messages.error(request, "Error: A Customer with this email already exists.")
-            return redirect("home")
+            except Http404 as e:
+                # Handle case where user is not found
+                messages.error(request, "User not found.")
+                return response
+            except Exception as e:
+                # Handle any other unforeseen errors
+                print(f"An unexpected error occurred: {str(e)}")
+                messages.error(request, "An unexpected error occurred")
+                return redirect("home")
 
-        except Http404:
-            return response
-
-
-@login_required
-def get_actualCustomer(request):
-    """
-    Get the current customer associated with the logged-in user.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        Customer: The current customer.
-    """
-    actualUserId = request.user.idUser
-    actualCustomer = get_object_or_404(Customer, idUser=actualUserId)
-    return actualCustomer
+    return CustomerRegistrationView
 
 
 @login_required
-def editCreate_MedicalInformation(request):
+@actual_customer_required(customer_service)
+@inject_service(medical_info_service)
+def editCreate_MedicalInformation(request, actualCustomer, service):
     """
     View for editing or creating medical information associated with a customer.
 
@@ -74,24 +82,25 @@ def editCreate_MedicalInformation(request):
         HttpResponse: Redirects to the "editGeneralAllCustomer" page upon successful form submission.
                       Displays error messages if the form is invalid.
     """
-    actualCustomer = get_actualCustomer(request)
 
     try:
-        instanceMedicalInformation = MedicalInformation.objects.get(
-            idCustomer=actualCustomer.idCustomer
+        instanceMedicalInformation = service.get_medical_info_by_customer(
+            actualCustomer.idCustomer
         )
-    except MedicalInformation.DoesNotExist:
+    except Exception as e:
         instanceMedicalInformation = None
 
     if request.method == "POST":
         form = MedicalInformationForm(request.POST, instance=instanceMedicalInformation)
         if form.is_valid():
-            medicalInfo = form.save(commit=False)
-            medicalInfo.idCustomer = actualCustomer
-            medicalInfo.save()
-
-            messages.success(request, "¡Correctly updated medical information!")
+            try:
+                service.save_medical_info(form, actualCustomer)
+                messages.success(request, "Correctly updated medical information!")
+            except Exception as e:
+                # Handle save errors
+                messages.error(request, f"Error saving medical information")
         else:
+            # Form validation failed
             messages.error(request, "Error in the form. Please correct the errors.")
         return redirect("editGeneralAllCustomer")
     else:
@@ -101,7 +110,9 @@ def editCreate_MedicalInformation(request):
 
 
 @login_required
-def create_preference(request):
+@actual_customer_required(customer_service)
+@inject_service(preference_service)
+def create_preference(request, actualCustomer, service):
     """
     View for creating a new preference associated with the current customer.
 
@@ -112,17 +123,18 @@ def create_preference(request):
         HttpResponse: Redirects to the "editGeneralAllCustomer" page upon successful form submission.
                       Displays error messages if the form is invalid.
     """
-    actualCustomer = get_actualCustomer(request)
 
     if request.method == "POST":
         form = PreferenceForm(request.POST)
         if form.is_valid():
-            preference = form.save(commit=False)
-            preference.idCustomer = actualCustomer
-            preference.save()
-
-            messages.success(request, "¡Preference added correctly!")
+            try:
+                service.create_preference(form, actualCustomer)
+                messages.success(request, "Preference added correctly!")
+            except Exception as e:
+                # Handle preference creation errors
+                messages.error(request, f"Error creating preference")
         else:
+            # Form validation failed
             messages.error(request, "Error in the form. Please correct the errors.")
         return redirect("editGeneralAllCustomer")
     else:
@@ -132,53 +144,47 @@ def create_preference(request):
 
 
 @login_required
-def preference_customer_list(request):
-    """
-    Get a list of all preferences of a Customer.
-
-    Returns:
-        QuerySet: All preferences of a Customer.
-    """
-    actualCustomer = get_actualCustomer(request)
-    preferencesCustomer = Preference.objects.filter(
-        idCustomer=actualCustomer.idCustomer
-    )
-    return preferencesCustomer
-
-
-@login_required
-def delete_preference(request, idPreference):
+@actual_customer_required(customer_service)
+@inject_service(preference_service)
+def delete_preference(request, idPreference, actualCustomer, service=None):
     """
     View for deleting a preference associated with the current customer.
 
     Args:
         request (HttpRequest): The HTTP request object.
-        id_preference (int): The ID of the preference to delete.
+        idPreference (int): The ID of the preference to delete.
+        actualCustomer (Customer): The current customer object.
+        service (PreferenceService): The preference service injected.
 
     Returns:
         HttpResponse: Redirects to the "editGeneralAllCustomer" page upon successful deletion.
                       Displays error messages if the user does not have permission.
     """
-    actualCustomer = get_actualCustomer(request)
-    preference = get_object_or_404(Preference, idPreference=idPreference)
 
-    # Verify that the user is the preference owner
-    if actualCustomer.idCustomer == preference.idCustomer.idCustomer:
-        preference.delete()
-        messages.success(request, "The preference was successfully deleted.")
-    else:
-        messages.error(request, "You do not have permission to delete this preference.")
+    try:
+        preference_deleted_message = service.delete_preference(
+            idPreference, actualCustomer
+        )
+        if preference_deleted_message["type"]:
+            messages.success(request, preference_deleted_message["content"])
+        else:
+            messages.error(request, preference_deleted_message["content"])
+    except Exception as e:
+        # Handle any errors during preference deletion
+        messages.error(request, f"Error deleting preference")
 
     return redirect("editGeneralAllCustomer")
 
 
 @login_required
-def edit_customer(request):
+@actual_customer_required(customer_service)
+def edit_customer(request, actualCustomer):
     """
     Edits customer information based on the provided request.
 
     Args:
         request (HttpRequest): The HTTP request object.
+        actualCustomer (Customer): The current customer instance.
 
     Returns:
         form: The customer update form.
@@ -187,16 +193,17 @@ def edit_customer(request):
         This function utilizes the Django authentication decorator `@login_required`.
         It handles both GET and POST requests for editing customer information.
     """
-    # Retrieve the current customer using a utility function.
-    actualCustomer = get_actualCustomer(request)
 
     if request.method == "POST":
         # Process the form submission for updating customer information.
         form = CustomerUpdateForm(request.POST, instance=actualCustomer)
         if form.is_valid():
-            # Save the form changes if valid and display success message.
-            form.save()
-            messages.success(request, "¡Correctly updated personal presentation!")
+            try:
+                form.save()
+                messages.success(request, "Correctly updated personal presentation!")
+            except Exception as e:
+                # Handle save errors
+                messages.error(request, f"Error updating customer")
         else:
             # Display an error message if the form is invalid.
             messages.error(request, "Error in the form. Please correct the errors.")
@@ -210,7 +217,9 @@ def edit_customer(request):
 
 
 @login_required
-def edit_general_all_customer(request):
+@actual_customer_required(customer_service)
+@inject_service(preference_service)
+def edit_general_all_customer(request, actualCustomer, service):
     """
     View for editing general information for all customers.
 
@@ -220,12 +229,19 @@ def edit_general_all_customer(request):
     Returns:
         HttpResponse: Rendered HTML page with the necessary forms and data.
     """
-    # Initialize form instances for different sections
-    formMedicalInformation = editCreate_MedicalInformation(request)
-    formCreatePreference = create_preference(request)
-    listPreferenceCustomer = preference_customer_list(request)
-    formEditUserProfile = edit_user_profile(request)
-    formEditCustomer = edit_customer(request)
+    try:
+        # Initialize form instances for different sections
+        formMedicalInformation = editCreate_MedicalInformation(request)
+        formCreatePreference = create_preference(request)
+        listPreferenceCustomer = service.get_preferences_by_customer(
+            actualCustomer.idCustomer
+        )
+        formEditUserProfile = edit_user_profile(request)
+        formEditCustomer = edit_customer(request)
+    except Exception as e:
+        # Handle any errors while fetching customer data or forms
+        messages.error(request, f"Error loading customer data: {str(e)}")
+        return redirect("home")
 
     # Render the edit_user.html template with form instances and data
     return render(

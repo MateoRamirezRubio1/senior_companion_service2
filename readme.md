@@ -1,3 +1,6 @@
+## Prueba de uso
+[Tab-1728707364150.webm](https://github.com/user-attachments/assets/58b4e443-729e-4fb6-bdd6-099dbb0f5b82)
+
 ## **Actividad 1**
 
 - El proyecto original se basa en una aplicación web desarrollada para la asignatura **Proyecto Integrador 1**, cuyo código base se encuentra en el siguiente enlace: [Enlace al repositorio original](https://github.com/MateoRamirezRubio1/Senior_Companion_Service).

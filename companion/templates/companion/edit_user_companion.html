@@ -160,7 +160,7 @@
                         </div>
                         <div class="about">
                             <h5>About Me</h5>
-                            <form method="POST" action="{% url 'editCompanion' %}">
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}">
                                 {% csrf_token %}
                                 <div class="row gutters">
                                     {% for field in formEditCompanion %}
@@ -178,7 +178,8 @@
                                     {% endfor %}
                                 </div>
 
-                                <button type="submit" id="update" name="update" class="btn btn-outline-primary">Update
+                                <button type="submit" id="update" name="edit_companion_form"
+                                    class="btn btn-outline-primary">Update
                                 </button>
                             </form>
                         </div>
@@ -216,7 +217,7 @@
 
                     <div class="tab-content">
                         <div class="tab-pane fade show active" id="personal">
-                            <form method="POST" action="{% url 'editUserProfileCompanion' %}"
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}"
                                 enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <h6 class="mb-2 text-primary form-title">Personal Information</h6>
@@ -245,7 +246,7 @@
                                 </div>
                                 <div class="bottom-right-buttons">
                                     <!-- Botones en la parte inferior derecha -->
-                                    <button type="submit" id="update" name="update"
+                                    <button type="submit" id="update" name="edit_user_form"
                                         class="btn btn-outline-primary">Update Personal
                                         Information</button>
                                 </div>
@@ -253,7 +254,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="time">
-                            <form method="POST" action="{% url 'createTimeAvailability' %}">
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}">
                                 {% csrf_token %}
                                 <h6 class="mb-2 text-primary form-title">Time Availability</h6>
                                 <p>Specify your availability by providing the date, start time, and end time.</p>
@@ -272,7 +273,7 @@
                                     </div>
                                 </div>
 
-                                <button type="submit" id="add_availability" name="add_availability"
+                                <button type="submit" id="add_availability" name="create_time_availability_form"
                                     class="btn btn-outline-primary">Add Time
                                     Availability</button>
                             </form>
@@ -315,7 +316,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="reference">
-                            <form method="POST" action="{% url 'createReference' %}">
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}">
                                 {% csrf_token %}
                                 <h6 class="mb-2 text-primary form-title">References</h6>
                                 <p>Add the name or description of each of your preferences when choosing a companion
@@ -331,7 +332,8 @@
                                     {% endfor %}
                                 </div>
 
-                                <button type="submit" id="update" name="update" class="btn btn-outline-primary">Add
+                                <button type="submit" id="update" name="create_reference_form"
+                                    class="btn btn-outline-primary">Add
                                     Reference</button>
                             </form>
 
@@ -373,7 +375,8 @@
                         </div>
 
                         <div class="tab-pane fade" id="certification">
-                            <form method="POST" action="{% url 'createCertification' %}" enctype="multipart/form-data">
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}"
+                                enctype="multipart/form-data">
                                 {% csrf_token %}
                                 <h6 class="mb-2 text-primary form-title">Certification Information</h6>
                                 <p>Here you can add a new certification.</p>
@@ -395,7 +398,7 @@
                                     {% endfor %}
                                 </div>
 
-                                <button type="submit" id="addCertification" name="addCertification"
+                                <button type="submit" id="addCertification" name="create_certification_form"
                                     class="btn btn-outline-primary">Add
                                     Certification</button>
                             </form>
@@ -435,7 +438,7 @@
                         </div>
 
                         <div class="tab-pane fade" id="skill">
-                            <form method="POST" action="{% url 'createSkill' %}">
+                            <form method="POST" action="{% url 'editGeneralAllCompanion' %}">
                                 {% csrf_token %}
                                 <h6 class="mb-2 text-primary form-title">Skills</h6>
                                 <p>Add the name or description of each of your skills.
@@ -450,7 +453,8 @@
                                     {% endfor %}
                                 </div>
 
-                                <button type="submit" id="update" name="update" class="btn btn-outline-primary">Add
+                                <button type="submit" id="update" name="create_skill_form"
+                                    class="btn btn-outline-primary">Add
                                     skill</button>
                             </form>
 

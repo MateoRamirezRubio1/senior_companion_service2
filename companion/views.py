@@ -13,6 +13,174 @@ from .forms import (
     SkillForm,
     CompanionUpdateForm,
 )
+from abc import ABC, abstractmethod
+from .services import ReferenceService, TimeAvailabilityService, CertificationService
+
+
+class EditCompanionProfileStrategy(ABC):
+    @abstractmethod
+    def process(self, request, actualCompanion):
+        pass
+
+
+class CompanionUpdateStrategy(EditCompanionProfileStrategy):
+    def process(self, request, actualCompanion):
+        if request.method == "POST" and "edit_companion_form" in request.POST:
+            # Process the form submission for updating companion information.
+            form = CompanionUpdateForm(request.POST, instance=actualCompanion)
+            if form.is_valid():
+                # Save the form changes if valid and display success message.
+                form.save()
+                messages.success(request, "¡Correctly updated your about me!")
+            else:
+                # Display an error message if the form is invalid.
+                messages.error(request, "Error in the form. Please correct the errors.")
+            # Redirect the user to the companion edit page.
+            return redirect("editGeneralAllCompanion")
+        else:
+            # Display the companion update form for GET requests.
+            form = CompanionUpdateForm(instance=actualCompanion)
+
+        return form
+
+
+class ReferenceStrategy(EditCompanionProfileStrategy):
+    def process(self, request, actualCompanion):
+        if request.method == "POST" and "create_reference_form" in request.POST:
+            service = ReferenceService()
+            # Process POST request to save a new reference
+            form = ReferenceForm(request.POST)
+
+            if form.is_valid():
+                # Valid form submission
+                service.create_reference(actualCompanion, form)
+
+                messages.success(request, "¡Reference added correctly!")
+
+            else:
+                # Invalid form submission
+                email_error_message = service.validate_email_reference_form(form)
+
+                if email_error_message:
+                    messages.error(request, email_error_message)
+                else:
+                    messages.error(
+                        request, "Error in the form. Please correct the errors."
+                    )
+
+            return redirect("editGeneralAllCompanion")
+        else:
+            # Render the form for a GET request
+            form = ReferenceForm()
+
+        return form
+
+
+class TimeAvailabilityStrategy(EditCompanionProfileStrategy):
+    def process(self, request, actualCompanion):
+        if request.method == "POST" and "create_time_availability_form" in request.POST:
+            form = TimeAvailabilityForm(request.POST)
+            if form.is_valid():
+                service = TimeAvailabilityService()
+                # Validate if a TimeAvailability already exists with the same date and times
+                existing_availability_message = (
+                    service.validate_time_availability_exists(form)
+                )
+
+                if existing_availability_message:
+                    messages.error(
+                        request,
+                        existing_availability_message,
+                    )
+                else:
+                    service.create_time_availability(actualCompanion, form)
+                    messages.success(request, "Time availability added successfully!")
+            else:
+                # Invalid form submission
+                if form.errors:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{error}")
+                else:
+                    messages.error(
+                        request, "Error in the form. Please correct the errors."
+                    )
+
+            return redirect("editGeneralAllCompanion")
+        else:
+            # Render the form for a GET request
+            form = TimeAvailabilityForm()
+
+        return form
+
+
+class CertificationStrategy(EditCompanionProfileStrategy):
+    def process(self, request, actualCompanion):
+        if request.method == "POST" and "create_certification_form" in request.POST:
+            # Process POST request to save a new certification entry
+            form = CertificationForm(request.POST, request.FILES)
+
+            if form.is_valid():
+                service = CertificationService()
+                service.create_certification(actualCompanion, form)
+
+                messages.success(request, "¡Certification added correctly!")
+            else:
+                # Invalid form submission
+                if form.errors:
+                    for field, errors in form.errors.items():
+                        for error in errors:
+                            messages.error(request, f"{field.capitalize()}: {error}")
+                else:
+                    messages.error(
+                        request, "Error in the form. Please correct the errors."
+                    )
+
+            return redirect("editGeneralAllCompanion")
+        else:
+            # Render the form for a GET request
+            form = CertificationForm()
+
+        return form
+
+
+class SkillStrategy(EditCompanionProfileStrategy):
+    def process(self, request, actualCompanion):
+        if request.method == "POST" and "create_skill_form" in request.POST:
+            # Process the form data if the request method is POST
+            form = SkillForm(request.POST)
+            if form.is_valid():
+                # Save the skill associated with the current companion
+                skill = form.save(commit=False)
+                skill.idCompanion = actualCompanion
+                skill.save()
+
+                messages.success(request, "¡Skill added correctly!")
+            else:
+                # Display an error message if the form is not valid
+                messages.error(request, "Error in the form. Please correct the errors.")
+            return redirect("editGeneralAllCompanion")
+        else:
+            # Render an empty form for GET requests
+            form = SkillForm()
+
+        return form
+
+
+class CompanionProfileStrategyFactory:
+    def get_strategy(self, section):
+        sections = {
+            "companion": CompanionUpdateStrategy,
+            "skill": SkillStrategy,
+            "certification": CertificationStrategy,
+            "time_availability": TimeAvailabilityStrategy,
+            "reference": ReferenceStrategy,
+        }
+
+        if section not in sections:
+            raise ValueError(f"The section type '{section}' is not supported.")
+
+        return sections[section]()
 
 
 class CompanionRegistrationView(UserRegistrationView):
@@ -73,21 +241,6 @@ def get_actualCompanion(request):
 
 
 @login_required
-def reference_companion_list(request):
-    """
-    Get a list of all references of a Companion.
-
-    Returns:
-        QuerySet: All references of a Companion.
-    """
-    actualCompanion = get_actualCompanion(request)
-    referencesCompanion = Reference.objects.filter(
-        idCompanion=actualCompanion.idCompanion
-    )
-    return referencesCompanion
-
-
-@login_required
 def delete_reference(request, idReference):
     """
     View for deleting a reference associated with the current companion.
@@ -101,133 +254,18 @@ def delete_reference(request, idReference):
                       Displays error messages if the user does not have permission.
     """
     actualCompanion = get_actualCompanion(request)
-    reference = get_object_or_404(Reference, idReference=idReference)
+    service = ReferenceService()
+    reference = service.get_reference_by_id(idReference)
+
+    deleted_reference = service.delete_reference(actualCompanion, reference)
 
     # Verify that the user is the preference owner
-    if actualCompanion.idCompanion == reference.idCompanion.idCompanion:
-        reference.delete()
-        messages.success(request, "The reference was successfully deleted.")
+    if deleted_reference["type"]:
+        messages.success(request, deleted_reference["content"])
     else:
-        messages.error(request, "You do not have permission to delete this reference.")
+        messages.error(request, deleted_reference["content"])
 
     return redirect("editGeneralAllCompanion")
-
-
-@login_required
-def create_reference(request):
-    """
-    View function for creating a new reference associated with the current companion.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        HttpResponse: Redirects to the 'editGeneralAllCompanion' page with appropriate messages.
-
-    """
-    actualCompanion = get_actualCompanion(request)
-
-    if request.method == "POST":
-        # Process POST request to save a new reference
-        form = ReferenceForm(request.POST)
-
-        if form.is_valid():
-            # Valid form submission
-            reference = form.save(commit=False)
-            reference.idCompanion = actualCompanion
-            reference.save()
-
-            messages.success(request, "¡Reference added correctly!")
-        else:
-            # Invalid form submission
-            email_errors = form.errors.get("email")
-
-            if email_errors:
-                messages.error(request, "A reference with this email already exists.")
-            else:
-                messages.error(request, "Error in the form. Please correct the errors.")
-
-        return redirect("editGeneralAllCompanion")
-    else:
-        # Render the form for a GET request
-        form = ReferenceForm()
-
-    return form
-
-
-@login_required
-def time_availability_list(request):
-    """
-    View function for retrieving a list of time availabilities associated with the current companion.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        QuerySet: A queryset of TimeAvailability objects filtered by the current companion's ID, ordered by date and start time.
-
-    """
-    actualCompanion = get_actualCompanion(request)
-    time_availabilities = TimeAvailability.objects.filter(
-        idCompanion=actualCompanion.idCompanion
-    ).order_by("date", "startTime")
-
-    return time_availabilities
-
-
-@login_required
-def create_time_availability(request):
-    """
-    View function for creating a new time availability entry associated with the current companion.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        HttpResponse or TimeAvailabilityForm: If the request method is POST, redirects to the 'editGeneralAllCompanion' page with appropriate messages.
-        If the request method is GET, returns the TimeAvailabilityForm for rendering.
-
-    """
-    actualCompanion = get_actualCompanion(request)
-
-    if request.method == "POST":
-        form = TimeAvailabilityForm(request.POST)
-        if form.is_valid():
-            # Validate if a TimeAvailability already exists with the same date and times
-            date = form.cleaned_data["date"]
-            start_time = form.cleaned_data["startTime"]
-            end_time = form.cleaned_data["endTime"]
-
-            existing_availability = TimeAvailability.objects.filter(
-                date=date, startTime__lte=end_time, endTime__gte=start_time
-            )
-
-            if existing_availability.exists():
-                messages.error(
-                    request,
-                    "Time availability already exists for the specified period.",
-                )
-            else:
-                timeAv = form.save(commit=False)
-                timeAv.idCompanion = actualCompanion
-                timeAv.save()
-
-                messages.success(request, "Time availability added successfully!")
-        else:
-            # Invalid form submission
-            if form.errors:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f"{error}")
-            else:
-                messages.error(request, "Error in the form. Please correct the errors.")
-
-        return redirect("editGeneralAllCompanion")
-    else:
-        # Render the form for a GET request
-        form = TimeAvailabilityForm()
-
-    return form
 
 
 @login_required
@@ -244,81 +282,20 @@ def delete_time_availability(request, idTimeAvailability):
 
     """
     actualCompanion = get_actualCompanion(request)
-    timeAvailability = get_object_or_404(
-        TimeAvailability, idTimeAvailability=idTimeAvailability
+    service = TimeAvailabilityService()
+    timeAvailability = service.get_time_availability_by_id(idTimeAvailability)
+
+    deleted_time_availability = service.delete_time_availability(
+        actualCompanion, timeAvailability
     )
 
     # Verify that the user is the preference owner
-    if actualCompanion.idCompanion == timeAvailability.idCompanion.idCompanion:
-        timeAvailability.delete()
-        messages.success(request, "The time availability was successfully deleted.")
+    if deleted_time_availability["type"]:
+        messages.success(request, deleted_time_availability["content"])
     else:
-        messages.error(
-            request, "You do not have permission to delete this time availability."
-        )
+        messages.error(request, deleted_time_availability["content"])
 
     return redirect("editGeneralAllCompanion")
-
-
-@login_required
-def create_certification(request):
-    """
-    View function for creating a new certification entry associated with the current companion.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        HttpResponse or CertificationForm: If the request method is POST, redirects to the 'editGeneralAllCompanion' page with appropriate messages.
-        If the request method is GET, returns the CertificationForm for rendering.
-
-    """
-    actualCompanion = get_actualCompanion(request)
-
-    if request.method == "POST":
-        # Process POST request to save a new certification entry
-        form = CertificationForm(request.POST, request.FILES)
-
-        if form.is_valid():
-            certification = form.save(commit=False)
-            certification.idCompanion = actualCompanion
-            certification.save()
-
-            messages.success(request, "¡Certification added correctly!")
-        else:
-            # Invalid form submission
-            if form.errors:
-                for field, errors in form.errors.items():
-                    for error in errors:
-                        messages.error(request, f"{field.capitalize()}: {error}")
-            else:
-                messages.error(request, "Error in the form. Please correct the errors.")
-
-        return redirect("editGeneralAllCompanion")
-    else:
-        # Render the form for a GET request
-        form = CertificationForm()
-
-    return form
-
-
-@login_required
-def certifications_companion_list(request):
-    """
-    View function for retrieving a list of certifications associated with the current companion.
-
-    Args:
-        request (HttpRequest): The HTTP request object.
-
-    Returns:
-        QuerySet: A queryset of Certification objects filtered by the current companion's ID.
-
-    """
-    actualCompanion = get_actualCompanion(request)
-    certifications = Certification.objects.filter(
-        idCompanion=actualCompanion.idCompanion
-    )
-    return certifications
 
 
 @login_required
@@ -338,58 +315,21 @@ def delete_certification(request, idCertification):
     """
     # Retrieve the current companion from the request
     actualCompanion = get_actualCompanion(request)
+    service = CertificationService()
 
     # Retrieve the certification object or raise a 404 error if not found
-    certification = get_object_or_404(Certification, idCertification=idCertification)
+    certification = service.get_certification_by_id(idCertification)
+    deleted_certification = service.delete_certification(actualCompanion, certification)
 
     # Verify that the user is the owner of the associated companion
-    if actualCompanion.idCompanion == certification.idCompanion.idCompanion:
-        # Delete the certification
-        certification.delete()
-        messages.success(request, "The certification was successfully deleted.")
+    if deleted_certification["type"]:
+        messages.success(request, deleted_certification["content"])
     else:
         # Display an error message if the user does not have permission
-        messages.error(
-            request, "You do not have permission to delete this certification."
-        )
+        messages.error(request, deleted_certification["content"])
 
     # Redirect to the "editGeneralAllCompanion" view
     return redirect("editGeneralAllCompanion")
-
-
-@login_required
-def create_skill(request):
-    """
-    View function to handle the creation of a new skill associated with a companion.
-
-    Args:
-        request (HttpRequest): The request object.
-
-    Returns:
-        HttpResponse: Redirects to the "editGeneralAllCompanion" view after processing the form.
-    """
-    # Retrieve the current companion from the request
-    actualCompanion = get_actualCompanion(request)
-
-    if request.method == "POST":
-        # Process the form data if the request method is POST
-        form = SkillForm(request.POST)
-        if form.is_valid():
-            # Save the skill associated with the current companion
-            skill = form.save(commit=False)
-            skill.idCompanion = actualCompanion
-            skill.save()
-
-            messages.success(request, "¡Skill added correctly!")
-        else:
-            # Display an error message if the form is not valid
-            messages.error(request, "Error in the form. Please correct the errors.")
-        return redirect("editGeneralAllCompanion")
-    else:
-        # Render an empty form for GET requests
-        form = SkillForm()
-
-    return form
 
 
 @login_required
@@ -447,39 +387,6 @@ def delete_skill(request, idSkill):
 
 
 @login_required
-def edit_companion(request):
-    """
-    View function to handle the editing of companion information.
-
-    Args:
-        request (HttpRequest): The request object.
-
-    Returns:
-        HttpResponse: Redirects to the "editGeneralAllCompanion" view after processing the form.
-    """
-    # Retrieve the current companion from the request
-    actualCompanion = get_actualCompanion(request)
-
-    if request.method == "POST":
-        # Process the form submission for updating companion information.
-        form = CompanionUpdateForm(request.POST, instance=actualCompanion)
-        if form.is_valid():
-            # Save the form changes if valid and display success message.
-            form.save()
-            messages.success(request, "¡Correctly updated your about me!")
-        else:
-            # Display an error message if the form is invalid.
-            messages.error(request, "Error in the form. Please correct the errors.")
-        # Redirect the user to the companion edit page.
-        return redirect("editGeneralAllCompanion")
-    else:
-        # Display the companion update form for GET requests.
-        form = CompanionUpdateForm(instance=actualCompanion)
-
-    return form
-
-
-@login_required
 def edit_general_all_companion(request):
     """
     View function to render the companion's general edit page.
@@ -490,17 +397,42 @@ def edit_general_all_companion(request):
     Returns:
         HttpResponse: Renders the "companion/edit_user_companion.html" template with necessary forms and lists.
     """
+    factory = CompanionProfileStrategyFactory()
+    actualCompanion = get_actualCompanion(request)
+    reference_service = ReferenceService()
+    time_availability_service = TimeAvailabilityService()
+    certification_service = CertificationService()
+
     # Retrieve forms and lists from respective views
     formEditUserProfile = edit_user_profile(request)
-    formReferenceCompanion = create_reference(request)
-    listReferencesCompanion = reference_companion_list(request)
-    formCreateTimeAvailability = create_time_availability(request)
-    listTimeAvailabilityCompanion = time_availability_list(request)
-    formCertificationCompanion = create_certification(request)
-    listCertificationCompanion = certifications_companion_list(request)
-    formCreateSkill = create_skill(request)
+    formReferenceCompanion = factory.get_strategy("reference").process(
+        request, actualCompanion
+    )
+    listReferencesCompanion = reference_service.get_reference_list_by_companion(
+        actualCompanion
+    )
+    formCreateTimeAvailability = factory.get_strategy("time_availability").process(
+        request, actualCompanion
+    )
+    listTimeAvailabilityCompanion = (
+        time_availability_service.get_time_availability_list_by_companion(
+            actualCompanion
+        )
+    )
+    formCertificationCompanion = factory.get_strategy("certification").process(
+        request, actualCompanion
+    )
+    listCertificationCompanion = (
+        certification_service.get_certification_list_by_companion(actualCompanion)
+    )
+    formCreateSkill = factory.get_strategy("skill").process(request, actualCompanion)
     listSkillsCompanion = skill_companion_list(request)
-    formEditCompanion = edit_companion(request)
+    formEditCompanion = factory.get_strategy("companion").process(
+        request, actualCompanion
+    )
+
+    if request.method == "POST":
+        return redirect("editGeneralAllCompanion")
 
     # Render the template with forms and lists
     return render(

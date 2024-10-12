@@ -184,7 +184,7 @@ def edit_user_profile(request):
         This view assumes the existence of a UserProfileForm based on the User model.
         It also uses the `get_if_Customer_Companion` utility function to determine the user type (customer or companion).
     """
-    if request.method == "POST":
+    if request.method == "POST" and "edit_user_form" in request.POST:
         # Process the form submission for updating user profile information.
         form = UserProfileForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():

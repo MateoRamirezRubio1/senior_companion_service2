@@ -8,6 +8,7 @@ from authentication.models import User
 from .forms import MedicalInformationForm, PreferenceForm, CustomerUpdateForm
 from .decorators import actual_customer_required, inject_service
 from .services_factory import ServiceFactory
+from .services import CustomerService, PreferenceService, MedicalInformationService
 
 services_factory = ServiceFactory()
 customer_service = services_factory.get_service("CUSTOMER")
@@ -23,7 +24,7 @@ def CustomerRegistrationFactory():
         """
 
         @inject_service(customer_service)
-        def post(self, request, *args, service=None, **kwargs):
+        def post(self, request, *args, service: CustomerService, **kwargs):
             """
             Handle POST request to process customer registration.
 
@@ -71,7 +72,9 @@ def CustomerRegistrationFactory():
 @login_required
 @actual_customer_required(customer_service)
 @inject_service(medical_info_service)
-def editCreate_MedicalInformation(request, actualCustomer, service):
+def editCreate_MedicalInformation(
+    request, actualCustomer, service: MedicalInformationService
+):
     """
     View for editing or creating medical information associated with a customer.
 
@@ -112,7 +115,7 @@ def editCreate_MedicalInformation(request, actualCustomer, service):
 @login_required
 @actual_customer_required(customer_service)
 @inject_service(preference_service)
-def create_preference(request, actualCustomer, service):
+def create_preference(request, actualCustomer, service: PreferenceService):
     """
     View for creating a new preference associated with the current customer.
 
@@ -146,7 +149,9 @@ def create_preference(request, actualCustomer, service):
 @login_required
 @actual_customer_required(customer_service)
 @inject_service(preference_service)
-def delete_preference(request, idPreference, actualCustomer, service=None):
+def delete_preference(
+    request, idPreference, actualCustomer, service: PreferenceService
+):
     """
     View for deleting a preference associated with the current customer.
 
@@ -219,7 +224,7 @@ def edit_customer(request, actualCustomer):
 @login_required
 @actual_customer_required(customer_service)
 @inject_service(preference_service)
-def edit_general_all_customer(request, actualCustomer, service):
+def edit_general_all_customer(request, actualCustomer, service: PreferenceService):
     """
     View for editing general information for all customers.
 

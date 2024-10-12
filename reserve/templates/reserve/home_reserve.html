@@ -149,6 +149,59 @@
 <!-- Accompanists Profiles Section -->
 <div class="container mt-5">
     <div class="row">
+
+        {% for companion in companions %}
+        <div class="col-lg-4">
+            <div class="card mb-4" id="profile-card-1">
+                <img src="{% if companion.idUser.is_authenticated and companion.idUser.profilePhoto %}{{ companion.idUser.profilePhoto.url }}{% else %}/media/profile_photos/default_profile_foto.jpg{% endif %}"
+                    class="card-img-top" alt="Perfil 1">
+                <div class="card-body">
+                    <!-- Mover el ícono de la flecha aquí -->
+                    <div id="arrow-icon" class="arrow-icon">
+                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
+                    </div>
+                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
+                    <div id="profile-menu" class="profile-menu">
+                        <ul>
+                            <li>
+                                <i class="fas fa-dollar-sign"></i> Price per hour: {{ companion.hourlyRate }}
+                            </li>
+                            <li>
+                                <i class="fas fa-language"></i> Languages:
+                                <ul>
+                                    <li>&#8226; Spanish</li>
+                                    <li>&#8226; English</li>
+                                    <li>&#8226; French</li>
+                                    <!-- Agregar más idiomas según sea necesario -->
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="text-center">
+                        <h4 class="mb-0">{{ companion.idUser.names }} {{ companion.idUser.lastNames }}</h4>
+                        <span class="text-muted d-block mb-2">{{ companion.idUser.location }}</span>
+                        <button class="btn btn-primary btn-sm follow">View Profile</button>
+                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
+                            <div class="stats">
+                                <h6 class="mb-0">Experience</h6>
+                                <span>20</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Rating</h6>
+                                <span>4.5</span>
+                            </div>
+                            <div class="stats">
+                                <h6 class="mb-0">Certifications</h6>
+                                <span>3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+
         <div class="col-lg-4">
             <div class="card mb-4" id="profile-card-1">
                 <img src="https://st2.depositphotos.com/1158045/50451/i/450/depositphotos_504518748-stock-photo-portrait-happy-cheerful-smiling-young.jpg"
@@ -198,103 +251,6 @@
             </div>
         </div>
         <!-- Agregar más perfiles de acompañantes aquí... -->
-        <div class="col-lg-4">
-            <div class="card mb-4" id="profile-card-2">
-                <img src="https://st4.depositphotos.com/2760050/39999/i/600/depositphotos_399994284-stock-photo-facial-care-and-ageing-traits.jpg"
-                    class="card-img-top" alt="Perfil 1">
-                <div class="card-body">
-                    <!-- Mover el ícono de la flecha aquí -->
-                    <div id="arrow-icon" class="arrow-icon">
-                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
-                    </div>
-                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
-                    <div id="profile-menu" class="profile-menu">
-                        <ul>
-                            <li>
-                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
-                            </li>
-                            <li>
-                                <i class="fas fa-language"></i> Languages:
-                                <ul>
-                                    <li>&#8226; Spanish</li>
-                                    <li>&#8226; English</li>
-                                    <li>&#8226; French</li>
-                                    <!-- Agregar más idiomas según sea necesario -->
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="text-center">
-                        <h4 class="mb-0">Benjamin Tims</h4>
-                        <span class="text-muted d-block mb-2">Germany</span>
-                        <button class="btn btn-primary btn-sm follow">View Profile</button>
-                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
-                            <div class="stats">
-                                <h6 class="mb-0">Experience</h6>
-                                <span>15</span>
-                            </div>
-                            <div class="stats">
-                                <h6 class="mb-0">Rating</h6>
-                                <span>4.0</span>
-                            </div>
-                            <div class="stats">
-                                <h6 class="mb-0">Certifications</h6>
-                                <span>2</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-4">
-            <div class="card mb-4" id="profile-card-3">
-                <img src="https://t2.uc.ltmcdn.com/es/posts/7/0/0/como_saber_si_un_hombre_es_maduro_34007_600.jpg"
-                    class="card-img-top" alt="Perfil 1">
-                <div class="card-body">
-                    <!-- Mover el ícono de la flecha aquí -->
-                    <div id="arrow-icon" class="arrow-icon">
-                        <i class="fas fa-plus"></i> <!-- Flecha como enlace -->
-                    </div>
-                    <!-- Agregar el contenido del menú aquí (inicialmente oculto) -->
-                    <div id="profile-menu" class="profile-menu">
-                        <ul>
-                            <li>
-                                <i class="fas fa-dollar-sign"></i> Price per hour: $30
-                            </li>
-                            <li>
-                                <i class="fas fa-language"></i> Languages:
-                                <ul>
-                                    <li>&#8226; Spanish</li>
-                                    <li>&#8226; English</li>
-                                    <li>&#8226; French</li>
-                                    <!-- Agregar más idiomas según sea necesario -->
-                                </ul>
-                            </li>
-                        </ul>
-                    </div>
-                    <div class="text-center">
-                        <h4 class="mb-0">Jacinto Oliveira</h4>
-                        <span class="text-muted d-block mb-2">Los Angeles</span>
-                        <button class="btn btn-primary btn-sm follow">View Profile</button>
-                        <div class="d-flex justify-content-between align-items-center mt-4 px-4">
-                            <div class="stats">
-                                <h6 class="mb-0">Experience</h6>
-                                <span>20</span>
-                            </div>
-                            <div class="stats">
-                                <h6 class="mb-0">Rating</h6>
-                                <span>4.5</span>
-                            </div>
-                            <div class="stats">
-                                <h6 class="mb-0">Certifications</h6>
-                                <span>3</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
 
         <div class="col-lg-4">
             <div class="card mb-4" id="profile-card-4">
